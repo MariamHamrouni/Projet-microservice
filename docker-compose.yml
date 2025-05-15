@@ -1,0 +1,72 @@
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: bitnami/kafka:3.5
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  authors-service:
+    build:
+      context: ./authors-service
+    container_name: authors-service
+    ports:
+    - "50052:50052"
+  book-service:
+    build:
+      context: ./book-service
+    container_name: book-service
+    ports:
+      - "50051:50051"
+    environment:
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - kafka
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - AUTHORS_SERVICE_URL=authors-service:5000
+      - BOOKS_SERVICE_URL=book-service:5000
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - authors-service
+      - book-service
+      - kafka
+
+  kafka-producer:
+    build:
+      context: ./kafka-producer
+    container_name: kafka-producer
+    environment:
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - kafka
+  kafka-consumer:
+    build:
+      context: ./kafka-consumer
+    container_name: kafka-consumer
+    environment:
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - kafka
+

@@ -1,0 +1,37 @@
+syntax = "proto3";
+package authors;
+
+message Author {
+  string id = 1;
+  string name = 2;
+  string bio = 3;
+}
+
+message GetAuthorRequest {
+  string author_id = 1;
+}
+
+message GetAuthorResponse {
+  Author author = 1;
+}
+
+message SearchAuthorsRequest {}
+
+message SearchAuthorsResponse {
+  repeated Author authors = 1;
+}
+
+message AddAuthorRequest {
+  string name = 1;
+  string bio = 2;
+}
+
+message AddAuthorResponse {
+  Author author = 1;
+}
+
+service AuthorsService {
+  rpc GetAuthor(GetAuthorRequest) returns (GetAuthorResponse);
+  rpc SearchAuthors(SearchAuthorsRequest) returns (SearchAuthorsResponse);
+  rpc AddAuthor(AddAuthorRequest) returns (AddAuthorResponse);
+}
